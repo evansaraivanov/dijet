@@ -20,7 +20,7 @@ bin = [0, 50, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1200, 1500, 2000]
 
 ntrackall = TFile("../root-files/dijet_sherpa_py.root")
 ntrackall3 = TFile("../root-files/dijet_data_py.root")
-ntrackall4 = TFile("../root-files/dijet-pythia-py(1).root")
+ntrackall4 = TFile("../root-files/dijet-pythia-py.root")
 ntrackall5 = TFile("../root-files/dijet-sherpa-pdf-54.root")
 ntrackall6 = TFile("../root-files/dijet-sherpa-pdf-100.root")
 
