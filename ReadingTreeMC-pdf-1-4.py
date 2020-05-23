@@ -107,7 +107,7 @@ for i in t1:
 				eta1 = "Forward"
 				eta2 = "Central"
             
-                        for j in range(0,10):
+                        for j in range(1,4):
                                 weight_all = i.weight*i.weight_ptslice*i.pdfWeights[j]  #i.pdfWeights[0] is nominal
                                 FillHisto(str(pTbin1)+"_LeadingJet_"+eta1+"_"+label1, JetList[0], weight_all)
                                 FillHisto(str(pTbin2)+"_SubJet_"+eta2+"_"+label2, JetList[1], weight_all)
@@ -118,7 +118,7 @@ for i in t1:
 	update_progress(progress)
 		
 #foutput = TFile("dijet-data-py.root","recreate")
-foutput = TFile("dijet-sherpa-pdf-0-10.root","recreate")
+foutput = TFile("dijet-sherpa-pdf-1-4.root","recreate")
 for hist in HistMap.values():
 	#for i in range(len(bins)):
 		#if str(bins[i]) in HistMap.keys():
