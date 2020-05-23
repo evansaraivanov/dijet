@@ -1,0 +1,11 @@
+executable  = ReadingTreeMC-pdf-1-4.py
+input       = /afs/cern.ch/work/e/esaraiva/private/dijet_sherpa_bdt.root
+arguments   = $(ClusterId) $(ProcId)
+output      = output/$(ClusterId).out
+error       = error/$(ClusterId).err
+log         = log/$(ClusterId).log
++JobFlavour = "testmatch"
+compress_files = dijet-sherpa-1-4.root
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+queue
