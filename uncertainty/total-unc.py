@@ -4,9 +4,9 @@ import numpy as np
 
 doreweight = 0   #decide if we want to do the reweighting process
 
-var = "bdt"  #change the var name according to the inputvar you want to read
+var = "ntrk"  #change the var name according to the inputvar you want to read
 mc = "sherpa_SF"   #by setting it as "SF" or "MC", it will automatically making scale factor plots or MC closure plots
-inputvar = "bdt"  #by setting it as bdt (or ntrk,width,c1..), it will read the corresponding histogram, but remember to change the TLine range according to X-axis of different variable, one can check it by browsing the histograms in root file.
+inputvar = "ntrk"  #by setting it as bdt (or ntrk,width,c1..), it will read the corresponding histogram, but remember to change the TLine range according to X-axis of different variable, one can check it by browsing the histograms in root file.
 
 def myText(x,y,text, color = 1):
 	l = TLatex()
@@ -73,7 +73,8 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 		lower_quark_pythia.Add(lower_quark2_pythia)
 		lower_gluon_pythia.Add(lower_gluon2_pythia)
 
-
+		higher_data_strap = higher_data.Clone("")     #Set aside for statistical uncertainty
+		lower_data_strap = lower_data.Clone("")
 
 		ToT_Fq2 = 0.
 		ToT_Fg2 = 0.
@@ -254,12 +255,13 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
                 #do bootsrapping
                 for k in range(nstraps):
+
                         forward_data_strap = higher_data.Clone("f"+str(k))
                         central_data_strap = lower_data.Clone("c"+str(k))
 
                         for j in range(1,higher.GetNbinsX()+1):
-                                forward_data_strap.SetBinContent(j,np.random.poisson(10000000.*higher_data.GetBinContent(j))/10000000.)
-                                central_data_strap.SetBinContent(j,np.random.poisson(10000000.*lower_data.GetBinContent(j))/10000000.)
+                                forward_data_strap.SetBinContent(j,np.random.poisson(higher_data_strap.GetBinContent(j)))
+                                central_data_strap.SetBinContent(j,np.random.poisson(lower_data_strap.GetBinContent(j)))
                         for j in range(0,higher.GetNbinsX()):
                                 F = forward_data_strap.GetBinContent(j)
                                 C = central_data_strap.GetBinContent(j)
