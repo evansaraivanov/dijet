@@ -4,9 +4,9 @@ import numpy as np
 
 doreweight = 0   #decide if we want to do the reweighting process
 
-var = "ntrk"  #change the var name according to the inputvar you want to read
+var = "bdt"  #change the var name according to the inputvar you want to read
 mc = "sherpa_SF"   #by setting it as "SF" or "MC", it will automatically making scale factor plots or MC closure plots
-inputvar = "ntrk"  #by setting it as bdt (or ntrk,width,c1..), it will read the corresponding histogram, but remember to change the TLine range according to X-axis of different variable, one can check it by browsing the histograms in root file.
+inputvar = var  #by setting it as bdt (or ntrk,width,c1..), it will read the corresponding histogram, but remember to change the TLine range according to X-axis of different variable, one can check it by browsing the histograms in root file.
 
 def myText(x,y,text, color = 1):
 	l = TLatex()
@@ -16,9 +16,11 @@ def myText(x,y,text, color = 1):
 	l.DrawLatex(x,y,text)
 	pass
 
+c1 = TCanvas("","",500,500)
+
 bin = [0, 50, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1200, 1500, 2000]
 
-ntrackall = TFile("../root-files/dijet_sherpa_py.root")
+ntrackall = TFile("../root-files/dijet-sherpa-py-nan.root")
 ntrackall3 = TFile("../root-files/dijet_data_py.root")
 ntrackall4 = TFile("../root-files/dijet-pythia-py.root")
 ntrackall5 = TFile("../root-files/dijet-sherpa-pdf-54.root")
@@ -26,7 +28,7 @@ ntrackall6 = TFile("../root-files/dijet-sherpa-pdf-100.root")
 
 for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 #for i in range(13):	#for gamma+jet combined with dijet event, start from jet pT>0 GeV
-        if(bin[i] != 800):
+#        if(bin[i] != 800):
 		min = bin[i]
 		max = bin[i+1]
 
@@ -209,12 +211,26 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 				gluon_pythia.SetBinContent(i,G)
 				#print "   ",i,G,higher_gluon.GetBinContent(i),lower_gluon.GetBinContent(i)
 
+                quark_pythia.SetLineColor(2)
+                gluon_pythia.SetLineColor(2)
+
+		leg = TLegend(0.82,0.7,0.98,0.9) ##0.6,0.5,0.9,0.7
+		leg.SetTextFont(42)
+		leg.SetFillColor(0)
+		leg.SetBorderSize(0)
+		leg.SetFillStyle(0)
+		leg.SetNColumns(1)
+		leg.AddEntry(quark_pythia,"pythia","l")
+		leg.AddEntry(quark,"sherpa","l")
+
 		quark_pythia.Draw("HIST")
 		quark.Draw("HIST same")
-#		c.Print("qtest.pdf")
+                leg.Draw("same")
+		c1.Print("showering-test/qtest-"+str(min)+"-"+var+".pdf")
 		gluon_pythia.Draw("HIST")
 		gluon.Draw("HIST same")
-#		c.Print("gtest.pdf")
+                leg.Draw("same")
+		c1.Print("showering-test/gtest-"+str(min)+"-"+var+".pdf")
 
 		#lower_data.Scale(1./lower_data.Integral())
 		#higher_data.Scale(1./higher_data.Integral())
@@ -374,8 +390,6 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 					e = quark_show_copy.GetBinContent(j)
 					f = gluon_show_copy.GetBinContent(j)
 
-					print(100*c,e,"  ;  ",100*d,f)
-
 					c = np.absolute(c)
 					d = np.absolute(d)
 
@@ -402,6 +416,7 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
                 #pdf uncertainty. stdev of binvals
                 #open the histograms for each pdf weight.
+
                 for k in range(1,101):
                         if(k < 55):
                                 higher_quark = ntrackall5.Get(str(min)+"_LeadingJet_Forward_Quark"+str(k)+"_"+inputvar)
@@ -540,6 +555,8 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
                         q_sigma_tot.SetBinContent(j+1,sigma_q_tot)
                         g_sigma_tot.SetBinContent(j+1,sigma_g_tot)
+
+                        print("statistical: "+str(100*a)+" , MC Closure: "+str(100*b)+" , Showering: "+str(100*c)+" , PDF: "+str(100*d))
 
                 q_sigma_tot.Scale(100)
                 g_sigma_tot.Scale(100)
@@ -749,3 +766,60 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 #		gluon_ratio.Draw()
 		line.Draw("same")
 		c.Print("./plots_"+var+"/gluon_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+".pdf")
+
+                #This next part will plot each uncertainty separately in each pt bin.
+		quark_strap.GetYaxis().SetRangeUser(-25,25)
+		quark_use.GetYaxis().SetRangeUser(-25,25)
+		quark_show_use.GetYaxis().SetRangeUser(-25,25)
+		quark_pdf.GetYaxis().SetRangeUser(-25,25)
+		gluon_strap.GetYaxis().SetRangeUser(-25,25)
+		gluon_use.GetYaxis().SetRangeUser(-25,25)
+		gluon_show_use.GetYaxis().SetRangeUser(-25,25)
+		gluon_pdf.GetYaxis().SetRangeUser(-25,25)
+
+
+
+
+
+
+
+
+                quark_strap.Draw("HIST")
+                quark_negative.Draw("HIST same")
+		line.Draw("same")
+		c.Print("./plots_"+var+"/quark_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+"stat.pdf")
+
+                quark_use.Draw("HIST")
+                quarkMC_negative.Draw("HIST same")
+		line.Draw("same")
+		c.Print("./plots_"+var+"/quark_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+"mc.pdf")
+
+                quark_show_use.Draw("HIST")
+                quark_show_negative.Draw("HIST same")
+		line.Draw("same")
+		c.Print("./plots_"+var+"/quark_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+"shower.pdf")
+
+                quark_pdf.Draw("HIST")
+                quark_pdf_negative.Draw("HIST same")
+		line.Draw("same")
+		c.Print("./plots_"+var+"/quark_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+"pdf.pdf")
+
+                gluon_strap.Draw("HIST")
+                gluon_negative.Draw("HIST same")
+		line.Draw("same")
+		c.Print("./plots_"+var+"/gluon_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+"stat.pdf")
+
+                gluon_use.Draw("HIST")
+                gluonMC_negative.Draw("HIST same")
+		line.Draw("same")
+		c.Print("./plots_"+var+"/gluon_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+"mc.pdf")
+
+                gluon_show_use.Draw("HIST")
+                gluon_show_negative.Draw("HIST same")
+		line.Draw("same")
+		c.Print("./plots_"+var+"/gluon_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+"shower.pdf")
+
+                gluon_pdf.Draw("HIST")
+                gluon_pdf_negative.Draw("HIST same")
+		line.Draw("same")
+		c.Print("./plots_"+var+"/gluon_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+"pdf.pdf")
