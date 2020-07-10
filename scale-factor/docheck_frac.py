@@ -1,12 +1,13 @@
 from ROOT import *
 #import numpy as np
 
+# for pythia, I have turned off the 800 filter. I have added hist p to draw options to supress error bars for now.
 
 doreweight = 0   #decide if we want to do the reweighting process
 
-var = "ntrk"  #change the var name according to the inputvar you want to read
+var = "bdt"  #change the var name according to the inputvar you want to read
 mc = "sherpa_MC"   #by setting it as "SF" or "MC", it will automatically making scale factor plots or MC closure plots
-inputvar = "ntrk"  #by setting it as bdt (or ntrk,width,c1..), it will read the corresponding histogram, but remember to change the TLine range according to X-axis of different variable, one can check it by browsing the histograms in root file.
+inputvar = "bdt"  #by setting it as bdt (or ntrk,width,c1..), it will read the corresponding histogram, but remember to change the TLine range according to X-axis of different variable, one can check it by browsing the histograms in root file.
 
 def myText(x,y,text, color = 1):
 	l = TLatex()
@@ -18,21 +19,23 @@ def myText(x,y,text, color = 1):
 
 bin = [0, 50, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1200, 1500, 2000]
 
-ntrackall = TFile("../root-files/dijet_sherpa_py.root")
+ntrackall = TFile("../root-files/dijet-sherpa-py-nan.root")
 ntrackall3 = TFile("../root-files/dijet_data_py.root")
+#ntrackall = TFile("../root-files/dijet-pythia-py.root")
+#ntrackall3 = TFile("../root-files/dijet_data_py.root")
 
 for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 #for i in range(13):	#for gamma+jet combined with dijet event, start from jet pT>0 GeV
         min = bin[i]
         max = bin[i+1]
 
-        if(min != 800):
-                higher_quark2 = ntrackall.Get(str(min)+"_LeadingJet_Forward_Quark_"+inputvar)
-                higher_gluon2 = ntrackall.Get(str(min)+"_LeadingJet_Forward_Gluon_"+inputvar)
-                higher_data2 = ntrackall3.Get(str(min)+"_LeadingJet_Forward_Data_"+inputvar)
-                lower_quark2 = ntrackall.Get(str(min)+"_LeadingJet_Central_Quark_"+inputvar)
-                lower_gluon2 = ntrackall.Get(str(min)+"_LeadingJet_Central_Gluon_"+inputvar)
-                lower_data2 = ntrackall3.Get(str(min)+"_LeadingJet_Central_Data_"+inputvar)
+#        if(min != 800):
+        higher_quark2 = ntrackall.Get(str(min)+"_LeadingJet_Forward_Quark_"+inputvar)
+        higher_gluon2 = ntrackall.Get(str(min)+"_LeadingJet_Forward_Gluon_"+inputvar)
+        higher_data2 = ntrackall3.Get(str(min)+"_LeadingJet_Forward_Data_"+inputvar)
+        lower_quark2 = ntrackall.Get(str(min)+"_LeadingJet_Central_Quark_"+inputvar)
+        lower_gluon2 = ntrackall.Get(str(min)+"_LeadingJet_Central_Gluon_"+inputvar)
+        lower_data2 = ntrackall3.Get(str(min)+"_LeadingJet_Central_Data_"+inputvar)
 
         higher_quark = ntrackall.Get(str(min)+"_SubJet_Forward_Quark_"+inputvar)
         higher_gluon = ntrackall.Get(str(min)+"_SubJet_Forward_Gluon_"+inputvar)
@@ -126,6 +129,7 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                         G = (C*fq-F*cq)/(cg*fq-fg*cq)
                         quark.SetBinContent(i,Q)
                         gluon.SetBinContent(i,G)
+                        #print(Q,F)
                         #print "   ",i,G,higher_gluon.GetBinContent(i),lower_gluon.GetBinContent(i)
                 pass
 
@@ -160,13 +164,17 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                 quark_ratio.GetYaxis().SetTitle("Data/MC") #Data/MC
                 gluon_ratio.GetYaxis().SetTitle("Data/MC") #Data/MC
         if "MC" in mc:
-                quark_ratio = higher_quark.Clone("")
-                gluon_ratio = higher_gluon.Clone("")
+                quark_ratio = quark.Clone("")
+                gluon_ratio = gluon.Clone("")
                 quark_ratio.GetYaxis().SetTitle("MC Closure") #Data/MC
                 gluon_ratio.GetYaxis().SetTitle("MC Closure") #Data/MC
 
-        quark_ratio.Divide(quark)
-        gluon_ratio.Divide(gluon)
+        quark_ratio.Divide(higher_quark)
+        gluon_ratio.Divide(higher_gluon)
+
+        for j in range(1,quark_ratio.GetNbinsX()+1):
+            a = quark_ratio.GetBinContent(j)
+            print(a)
 
         gStyle.SetOptStat(0)
         ######################## for ratio plot
@@ -240,12 +248,12 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
 
         top.cd()
-        quark.Draw()
+        quark.Draw("hist p")
 #		lower1.Draw("same")
         if "SF" in mc:
-                quark_data.Draw("same")
+                quark_data.Draw("hist p same")
         if "MC" in mc:
-                higher_quark.Draw("same")
+                higher_quark.Draw("hist p same")
 #		lower_quark.Draw("same")
         #higher_data.Draw("same")
         #lower_data.Draw("same")
@@ -275,10 +283,10 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
             line = TLine(0.,1,60,1)
         if(inputvar == "bdt"):
             line = TLine(-0.8,1,0.7,1)
-        #line = TLine(0.,1,0.4,1)
+        line = TLine(0.,1,0.4,1)
 
         bot.cd()
-        quark_ratio.Draw()
+        quark_ratio.Draw("HIST *h")
         line.Draw("same")
         #c.Print("./plots_bdt/quark_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+"_fc.pdf")
         c.Print("./plots_"+var+"/quark_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+".pdf")
@@ -327,11 +335,11 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
 
         top.cd()
-        gluon.Draw()
+        gluon.Draw("hist p")
         if "SF" in mc:
-                gluon_data.Draw("same")
+                gluon_data.Draw("hist p same")
         if "MC" in mc:
-                higher_gluon.Draw("same")
+                higher_gluon.Draw("hist p same")
         #lower_gluon.Draw("same")
         #higher_data.Draw("same")
         #lower_data.Draw("same")
@@ -363,6 +371,6 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
             line = TLine(-0.8,1,0.7,1)
 
         bot.cd()
-        gluon_ratio.Draw()
+        gluon_ratio.Draw("HIST *h")
         line.Draw("same")
         c.Print("./plots_"+var+"/gluon_"+str(min)+"_"+str(doreweight)+"_"+mc+"_"+var+".pdf")

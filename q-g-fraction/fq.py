@@ -13,6 +13,7 @@ var = "bdt"
 
 file1 = TFile("../root-files/dijet-sherpa-py-nan.root")
 file2 = TFile("../root-files/dijet-sherpa-eta.root")
+file3 = TFile("../root-files/dijet_data_py.root")
 
 bin = np.array([500.,600.,800.,1000.,1200.,1500.,2000.])
 bin2 = np.array([0.0,0.5,1.0,2.1])
@@ -27,10 +28,20 @@ pt_higher_gluon =  TH1F("pt_higher_gluon","",6,bin)
 pt_lower_quark = TH1F("pt_lower_quark","",6,bin)
 pt_lower_gluon = TH1F("pt_lower_gluon","",6,bin)
 
+pt_higher_quark_inv =  TH1F("pt_higher_quark","",6,bin)
+pt_higher_gluon_inv =  TH1F("pt_higher_gluon","",6,bin)
+pt_lower_quark_inv = TH1F("pt_lower_quark","",6,bin)
+pt_lower_gluon_inv = TH1F("pt_lower_gluon","",6,bin)
+
 eta_higher_quark = TH1F("eta_higher_quark","",3,bin2)
 eta_higher_gluon = TH1F("eta_higher_gluon","",3,bin2)
 eta_lower_quark = TH1F("eta_lower","",3,bin2)
 eta_lower_gluon = TH1F("eta_lower_gluon","",3,bin2)
+
+eta_higher_quark_inv = TH1F("eta_higher_quark","",3,bin2)
+eta_higher_gluon_inv = TH1F("eta_higher_gluon","",3,bin2)
+eta_lower_quark_inv = TH1F("eta_lower","",3,bin2)
+eta_lower_gluon_inv = TH1F("eta_lower_gluon","",3,bin2)
 
 bin = np.array([500,600,800,1000,1200,1500,2000])
 
@@ -41,11 +52,11 @@ for i in range(0,6):
     higher_quark = file1.Get(str(bin[i])+"_SubJet_Forward_Quark_"+var)
     higher_gluon = file1.Get(str(bin[i])+"_SubJet_Forward_Gluon_"+var)
 
-    if(bin[i] != 800):
-        higher_quark1 = file1.Get(str(bin[i])+"_LeadingJet_Forward_Quark_"+var)
-        higher_gluon1 = file1.Get(str(bin[i])+"_LeadingJet_Forward_Gluon_"+var)
-        higher_quark.Add(higher_quark1)
-        higher_gluon.Add(higher_gluon1)
+    #if(bin[i] != 800):
+    higher_quark1 = file1.Get(str(bin[i])+"_LeadingJet_Forward_Quark_"+var)
+    higher_gluon1 = file1.Get(str(bin[i])+"_LeadingJet_Forward_Gluon_"+var)
+    higher_quark.Add(higher_quark1)
+    higher_gluon.Add(higher_gluon1)
 
     lower_quark = file1.Get(str(bin[i])+"_LeadingJet_Central_Quark_"+var)
     lower_quark1 = file1.Get(str(bin[i])+"_SubJet_Central_Quark_"+var)
@@ -95,6 +106,11 @@ for i in range(0,6):
     pt_lower_quark.SetBinContent(i+1,fq2)
     pt_lower_gluon.SetBinContent(i+1,fg2)
 
+    pt_higher_quark_inv.SetBinContent(i+1,fg2/((fq1*fg2) - (fg1*fq2)))
+    pt_higher_gluon_inv.SetBinContent(i+1,-1*fg1/((fq1*fg2) - (fg1*fq2)))
+    pt_lower_quark_inv.SetBinContent(i+1,-1*fq2/((fq1*fg2) - (fg1*fq2)))
+    pt_lower_gluon_inv.SetBinContent(i+1,fq1/((fq1*fg2) - (fg1*fq2)))
+
     pt_higher_quark.SetBinError(i+1,np.sqrt(var_fq1))
     pt_higher_gluon.SetBinError(i+1,np.sqrt(var_fg1))
     pt_lower_quark.SetBinError(i+1,np.sqrt(var_fq2))
@@ -103,19 +119,20 @@ for i in range(0,6):
 pt_higher_quark.SetMaximum(1.)
 pt_higher_quark.SetMinimum(0.)
 pt_higher_quark.GetYaxis().SetTitle("Fraction")
-pt_higher_quark.GetXaxis().SetTitle("p_{T} (GeV)")
+pt_higher_quark.GetXaxis().SetTitle("1^{st} Jet p_{T} (GeV)")
 
 pt_higher_quark.SetLineColor(6)
 pt_higher_gluon.SetLineColor(2)
 pt_lower_quark.SetLineColor(4)
 pt_lower_gluon.SetLineColor(8)
 
-pt_higher_quark.SetLineWidth(2)
-pt_higher_gluon.SetLineWidth(2)
-pt_lower_quark.SetLineWidth(2)
-pt_lower_gluon.SetLineWidth(2)
+pt_higher_quark.SetLineWidth(3)
+pt_higher_gluon.SetLineWidth(3)
+pt_lower_quark.SetLineWidth(3)
+pt_lower_gluon.SetLineWidth(3)
 
-leg1 = TLegend(.15,0.15,0.45,0.3)
+
+leg1 = TLegend(.13,0.15,0.43,0.3)
 leg1.SetNColumns(2)
 leg1.AddEntry(pt_higher_quark,"f_{H,Q}","l")
 leg1.AddEntry(pt_higher_gluon,"f_{H,G}","l")
@@ -137,9 +154,50 @@ leg1.Draw("same")
 
 myText(0.14,0.84,'#it{#bf{#scale[1.4]{#bf{ATLAS} Simulation Preliminary}}}')
 myText(0.14,0.80,'#bf{#scale[1.2]{#sqrt{s}=13 TeV}}')
-myText(0.14,0.76,'#bf{#scale[1.2]{Anti-K_{t} EM+JES R=0.4}}')
+#myText(0.14,0.76,'#bf{#scale[1.2]{Anti-K_{t} EM+JES R=0.4}}')
 
 c.Print("pt-fraction.pdf")
+
+pt_higher_quark_inv.SetMaximum(15.)
+pt_higher_quark_inv.SetMinimum(-15.)
+pt_higher_quark_inv.GetYaxis().SetTitle("Fraction")
+pt_higher_quark_inv.GetXaxis().SetTitle("Leading Jet p_{T} (GeV)")
+
+pt_higher_quark_inv.SetLineColor(6)
+pt_higher_gluon_inv.SetLineColor(2)
+pt_lower_quark_inv.SetLineColor(4)
+pt_lower_gluon_inv.SetLineColor(8)
+
+pt_higher_quark_inv.SetLineWidth(3)
+pt_higher_gluon_inv.SetLineWidth(3)
+pt_lower_quark_inv.SetLineWidth(3)
+pt_lower_gluon_inv.SetLineWidth(3)
+
+leg2 = TLegend(.15,0.12,0.45,0.27)
+leg2.SetNColumns(2)
+leg2.AddEntry(pt_higher_quark,"F^{-1}_{H,Q}","l")
+leg2.AddEntry(pt_higher_gluon,"F^{-1}_{H,G}","l")
+leg2.AddEntry(pt_lower_quark,"F^{-1}_{L,Q}","l")
+leg2.AddEntry(pt_lower_gluon,"F^{-1}_{L,G}","l")
+leg2.SetBorderSize(0)
+leg2.SetFillStyle(0)
+
+line2 = TLine(500.,0.,2000.,0.)
+line2.SetLineColor(1)
+line2.SetLineWidth(2)
+
+pt_higher_quark_inv.Draw("HIST")
+pt_higher_gluon_inv.Draw("HIST same")
+pt_lower_quark_inv.Draw("HIST same")
+pt_lower_gluon_inv.Draw("HIST same")
+leg2.Draw("same")
+line2.Draw("same")
+
+myText(0.14,0.84,'#it{#bf{#scale[1.4]{#bf{ATLAS} Simulation Preliminary}}}')
+myText(0.14,0.80,'#bf{#scale[1.2]{#sqrt{s}=13 TeV}}')
+#myText(0.14,0.76,'#bf{#scale[1.2]{Anti-K_{t} EM+JES R=0.4}}')
+
+c.Print("pt-inv-fraction.pdf")
 
 #for eta range
 for i in range(0,3):
@@ -200,6 +258,11 @@ for i in range(0,3):
     eta_lower_quark.SetBinContent(i+1,fq2)
     eta_lower_gluon.SetBinContent(i+1,fg2)
 
+    eta_higher_quark_inv.SetBinContent(i+1,fg2/((fq1*fg2) - (fg1*fq2)))
+    eta_higher_gluon_inv.SetBinContent(i+1,-1*fg1/((fq1*fg2) - (fg1*fq2)))
+    eta_lower_quark_inv.SetBinContent(i+1,-1*fq2/((fq1*fg2) - (fg1*fq2)))
+    eta_lower_gluon_inv.SetBinContent(i+1,fq1/((fq1*fg2) - (fg1*fq2)))
+
     eta_higher_quark.SetBinError(i+1,np.sqrt(var_fq1))
     eta_lower_quark.SetBinError(i+1,np.sqrt(var_fq2))
     eta_higher_gluon.SetBinError(i+1,np.sqrt(var_fg1))
@@ -215,10 +278,10 @@ eta_higher_gluon.SetLineColor(2)
 eta_lower_quark.SetLineColor(4)
 eta_lower_gluon.SetLineColor(8)
 
-eta_higher_quark.SetLineWidth(2)
-eta_higher_gluon.SetLineWidth(2)
-eta_lower_quark.SetLineWidth(2)
-eta_lower_gluon.SetLineWidth(2)
+eta_higher_quark.SetLineWidth(3)
+eta_higher_gluon.SetLineWidth(3)
+eta_lower_quark.SetLineWidth(3)
+eta_lower_gluon.SetLineWidth(3)
 
 leg1 = TLegend(.15,0.15,0.45,0.3)
 leg1.SetNColumns(2)
@@ -242,6 +305,47 @@ leg1.Draw("same")
 
 myText(0.14,0.84,'#it{#bf{#scale[1.4]{#bf{ATLAS} Simulation Preliminary}}}')
 myText(0.14,0.80,'#bf{#scale[1.2]{#sqrt{s}=13 TeV}}')
-myText(0.14,0.76,'#bf{#scale[1.2]{Anti-K_{t} EM+JES R=0.4}}')
+#myText(0.14,0.76,'#bf{#scale[1.2]{Anti-K_{t} EM+JES R=0.4}}')
 
 c.Print("eta-fraction.pdf")
+
+eta_higher_quark_inv.SetMaximum(45.)
+eta_higher_quark_inv.SetMinimum(-45.)
+eta_higher_quark_inv.GetYaxis().SetTitle("Fraction")
+eta_higher_quark_inv.GetXaxis().SetTitle("|\eta|")
+
+eta_higher_quark_inv.SetLineColor(6)
+eta_higher_gluon_inv.SetLineColor(2)
+eta_lower_quark_inv.SetLineColor(4)
+eta_lower_gluon_inv.SetLineColor(8)
+
+eta_higher_quark_inv.SetLineWidth(3)
+eta_higher_gluon_inv.SetLineWidth(3)
+eta_lower_quark_inv.SetLineWidth(3)
+eta_lower_gluon_inv.SetLineWidth(3)
+
+leg2 = TLegend(.15,0.12,0.45,0.27)
+leg2.SetNColumns(2)
+leg2.AddEntry(pt_higher_quark,"F^{-1}_{H,Q}","l")
+leg2.AddEntry(pt_higher_gluon,"F^{-1}_{H,G}","l")
+leg2.AddEntry(pt_lower_quark,"F^{-1}_{L,Q}","l")
+leg2.AddEntry(pt_lower_gluon,"F^{-1}_{L,G}","l")
+leg2.SetBorderSize(0)
+leg2.SetFillStyle(0)
+
+line2 = TLine(0.,0.,2.1,0.)
+line2.SetLineColor(1)
+line2.SetLineWidth(2)
+
+eta_higher_quark_inv.Draw("HIST")
+eta_higher_gluon_inv.Draw("HIST same")
+eta_lower_quark_inv.Draw("HIST same")
+eta_lower_gluon_inv.Draw("HIST same")
+leg2.Draw("same")
+line2.Draw("same")
+
+myText(0.14,0.84,'#it{#bf{#scale[1.4]{#bf{ATLAS} Simulation Preliminary}}}')
+myText(0.14,0.80,'#bf{#scale[1.2]{#sqrt{s}=13 TeV}}')
+#myText(0.14,0.76,'#bf{#scale[1.2]{Anti-K_{t} EM+JES R=0.4}}')
+
+c.Print("eta-inv-fraction.pdf")

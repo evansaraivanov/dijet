@@ -90,6 +90,15 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 		ToT_Cq2_pythia = 0.
 		ToT_Cg2_pythia = 0.
 
+                truth_left_fq = 0
+                truth_left_fg = 0
+                truth_left_cq = 0
+                truth_left_cg = 0
+                truth_right_fq = 0
+                truth_right_fg = 0
+                truth_right_cq = 0
+                truth_right_cg = 0
+
 		for j in range(1,lower_quark.GetNbinsX()+1):
 			ToT_Fq2+=higher_quark.GetBinContent(j)
 			ToT_Cq2+=lower_quark.GetBinContent(j)
@@ -100,6 +109,20 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 			ToT_Cq2_pythia += lower_quark_pythia.GetBinContent(j)
 			ToT_Fg2_pythia += higher_gluon_pythia.GetBinContent(j)
 			ToT_Cg2_pythia += lower_gluon_pythia.GetBinContent(j)
+
+                        #this next loop will sum only bdt<-0.4 and bdt>0.4, these will be used in the denominator for the uncertainties.
+                        if(j<=16):
+                                truth_left_fq += higher_quark.GetBinContent(j)
+                                truth_left_fg += higher_gluon.GetBinContent(j)
+                                truth_left_cq += lower_quark.GetBinContent(j)
+                                truth_left_cg += lower_gluon.GetBinContent(j)
+                        if(j>=48): 
+                                truth_right_fq += higher_quark.GetBinContent(j)
+                                truth_right_fg += higher_gluon.GetBinContent(j)
+                                truth_right_cq += lower_quark.GetBinContent(j)
+                                truth_right_cg += lower_gluon.GetBinContent(j)
+
+
 
 		# calculate the fraction of forward(higher) / central(lower) quark or gluon jet
 		fg=ToT_Fg2/(ToT_Fg2+ToT_Fq2)
@@ -131,16 +154,14 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 					pass
 				pass
 			pass
-
-
-		if(lower_quark.Integral() != 0):
-			lower_quark.Scale(1./lower_quark.Integral())
+                if(lower_quark.Integral() != 0):
+                        lower_quark.Scale(1./lower_quark.Integral())
 		if(lower_gluon.Integral() != 0):
 			lower_gluon.Scale(1./lower_gluon.Integral())
 		if(higher_quark.Integral() != 0):
 			higher_quark.Scale(1./higher_quark.Integral())
 		if(higher_gluon.Integral() != 0):
-			higher_gluon.Scale(1./higher_gluon.Integral())
+                        higher_gluon.Scale(1./higher_gluon.Integral())
 		if(lower_data.Integral() != 0):
 			lower_data.Scale(1./lower_data.Integral())
 		if(higher_data.Integral() != 0):
@@ -185,16 +206,29 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                         pdf_qvals += [np.zeros(101)]
                         pdf_gvals += [np.zeros(101)]
 
+                ex_left_quark = 0
+                ex_left_gluon = 0
+                ex_right_quark = 0
+                ex_right_gluon = 0
+
 		#Matrix method here
 		for i in range(1,higher.GetNbinsX()+1):
 			F = higher.GetBinContent(i)
 			C = lower.GetBinContent(i)
+
 			if((cg*fq-fg*cq) != 0 ):
 				Q = -(C*fg-F*cg)/(cg*fq-fg*cq)
 				G = (C*fq-F*cq)/(cg*fq-fg*cq)
 				quark.SetBinContent(i,Q)
 				gluon.SetBinContent(i,G)
 				#print "   ",i,G,higher_gluon.GetBinContent(i),lower_gluon.GetBinContent(i)
+                                
+                                if(i <= 16):
+                                        ex_left_quark += Q
+                                        ex_left_gluon += G
+                                if(i >= 58):
+                                        ex_right_quark += Q
+                                        ex_right_gluon += G
 
                 #store in lists for pdf uncertainty.
             	pdf_qvals[i-1][0] = Q
@@ -232,10 +266,31 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                 leg.Draw("same")
 		c1.Print("showering-test/gtest-"+str(min)+"-"+var+".pdf")
 
-		#lower_data.Scale(1./lower_data.Integral())
-		#higher_data.Scale(1./higher_data.Integral())
-		#quark_data = higher_data.Clone("")
-		#gluon_data = higher_data.Clone("")
+                higher_quark_pythia.SetLineColor(2)
+                higher_gluon_pythia.SetLineColor(2)
+
+		leg = TLegend(0.82,0.7,0.98,0.9) ##0.6,0.5,0.9,0.7
+		leg.SetTextFont(42)
+		leg.SetFillColor(0)
+		leg.SetBorderSize(0)
+		leg.SetFillStyle(0)
+		leg.SetNColumns(1)
+		leg.AddEntry(higher_quark_pythia,"pythia","l")
+		leg.AddEntry(higher_quark,"sherpa","l")
+
+		higher_quark_pythia.Draw("HIST")
+		higher_quark.Draw("HIST same")
+                leg.Draw("same")
+		c1.Print("truth-test/qtest-"+str(min)+"-"+var+".pdf")
+		higher_gluon_pythia.Draw("HIST")
+		higher_gluon.Draw("HIST same")
+                leg.Draw("same")
+		c1.Print("truth-test/gtest-"+str(min)+"-"+var+".pdf")
+
+		lower_data.Scale(1./lower_data.Integral())
+		higher_data.Scale(1./higher_data.Integral())
+		quark_data = higher_data.Clone("")
+		gluon_data = higher_data.Clone("")
 
 		for i in range(1,higher_data.GetNbinsX()+1):
 			F = higher_data.GetBinContent(i)
@@ -246,7 +301,7 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 				quark_data.SetBinContent(i,Q)
 				gluon_data.SetBinContent(i,G)
 				#print "   ",i,"  ",G,"   ",Q
-			pass
+			pass 
 
                 #uncertainty calculations
                 #uncertainty lists, number-of-bins lists of 4 uncertainties.
@@ -325,7 +380,9 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                 quarkMC_negative = quark.Clone("")
                 gluonMC_negative = gluon.Clone("")
 
-                quark_copy.Add(higher_quark)
+                quark_higher = higher_quark.Clone("")
+
+                quark_copy.Add(quark_higher)
                 gluon_copy.Add(higher_gluon)
 
                 quark_copy.Scale(0.5)
@@ -363,26 +420,26 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                         sigma_tot_q[j][1] = quark_use.GetBinContent(j+1)
                         sigma_tot_g[j][1] = gluon_use.GetBinContent(j+1)
 
-
-
+                '''
+                #quickly changing to truth
                 #showering uncertainty extract. sherpa - pythia
-                quark_show_copy = quark.Clone("") # Used for the denominator of percent difference
-                gluon_show_copy = gluon.Clone("")
+                quark_show_copy = higher_quark.Clone("") # Used for the denominator of percent difference
+                gluon_show_copy = higher_gluon.Clone("")
 
-                quark_show_use = quark.Clone("") # Used for the numerator of percent difference
-                gluon_show_use = gluon.Clone("")
+                quark_show_use = higher_quark.Clone("") # Used for the numerator of percent difference
+                gluon_show_use = higher_gluon.Clone("")
 
-                quark_show_negative = quark.Clone("") # used as negative copy of percent difference
-                gluon_show_negative = quark.Clone("")
+                quark_show_negative = higher_quark.Clone("") # used as negative copy of percent difference
+                gluon_show_negative = higher_quark.Clone("")
 
-                quark_show_copy.Add(quark_pythia)
-                gluon_show_copy.Add(gluon_pythia)
+                quark_show_copy.Add(higher_quark_pythia)
+                gluon_show_copy.Add(higher_gluon_pythia)
 
                 quark_show_copy.Scale(0.5)
                 gluon_show_copy.Scale(0.5)
 
-                quark_show_use.Add(quark_pythia,-1)
-                gluon_show_use.Add(gluon_pythia,-1)
+                quark_show_use.Add(higher_quark_pythia,-1)
+                gluon_show_use.Add(higher_gluon_pythia,-1)
 
                 for j in range(1,quark.GetNbinsX()+1):
 					c = quark_show_use.GetBinContent(j)
@@ -407,11 +464,123 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
 
                 quark_show_negative.Divide(quark_show_copy)
                 gluon_show_negative.Divide(gluon_show_copy)
+                '''
+                #try using difference in MC closure
+                #compute the MC closure for sherpa and pythia
+                closure_sherpa_q = quark.Clone()
+                sherpa_higher_q = higher_quark.Clone()
+                closure_sherpa_q.Divide(sherpa_higher_q)
 
+                closure_sherpa_g = gluon.Clone()
+                closure_sherpa_g.Divide(higher_gluon)
+
+                closure_pythia_q = quark_pythia.Clone()
+                closure_pythia_q.Divide(higher_quark_pythia)
+
+                closure_pythia_g = gluon_pythia.Clone()
+                closure_pythia_g.Divide(higher_gluon_pythia)
+                
+                #Compute denominator, average vale of the pythia and sherpa mc closure
+                den_q = closure_sherpa_q.Clone()
+                den_q.Add(closure_pythia_q)
+                den_q.Scale(0.5)
+                den_g = closure_sherpa_g.Clone()
+                den_g.Add(closure_pythia_g)
+                den_g.Scale(0.5)
+                
+                quark_show_use = quark.Clone()
+                gluon_show_use = gluon.Clone()
+
+                quark_show_negative = quark.Clone()
+                gluon_show_negative = gluon.Clone()
+
+                mc_left_q = 0
+                mc_left_pythia_q = 0
+                mc_right_q = 0
+                mc_right_pythia_q = 0
+
+                mc_left_g = 0
+                mc_left_pythia_g = 0
+                mc_right_g = 0
+                mc_right_pythia_g = 0
+
+                q_right = 0
+                q_left = 0
+                g_right = 0
+                g_left = 0
+
+                for j in range(1,17):
+                        mc_left_q += closure_sherpa_q.GetBinContent(j)
+                        mc_left_g += closure_sherpa_g.GetBinContent(j)
+                        mc_left_pythia_q += closure_pythia_q.GetBinContent(j)
+                        mc_left_pythia_g += closure_pythia_g.GetBinContent(j)
+
+                for j in range(48,61):
+                        mc_right_q += closure_sherpa_q.GetBinContent(j)
+                        mc_right_g += closure_sherpa_g.GetBinContent(j)
+                        mc_right_pythia_q += closure_pythia_q.GetBinContent(j)
+                        mc_right_pythia_g += closure_pythia_g.GetBinContent(j)
+
+                den_left_q = (mc_left_q + mc_left_pythia_q) / 2
+                den_left_g = (mc_left_g + mc_left_pythia_g) / 2
+                den_right_q = (mc_right_q + mc_right_pythia_q) / 2
+                den_right_g = (mc_right_g + mc_right_pythia_g) / 2
+
+                for j in range(1,quark.GetNbinsX()+1):
+                        sherpa_q = closure_sherpa_q.GetBinContent(j)
+                        sherpa_g = closure_sherpa_g.GetBinContent(j)
+                        pythia_q = closure_pythia_q.GetBinContent(j)
+                        pythia_g = closure_pythia_g.GetBinContent(j)
+
+                        print(str(j)+": Gluon | "+str(sherpa_g)+" , "+str( pythia_g))
+
+                        unc_q = sherpa_q - pythia_q
+                        unc_g = sherpa_g - pythia_g
+
+                        den_q = (sherpa_q + pythia_q) / 2
+                        den_g = (sherpa_g + pythia_g) / 2
+
+                        if(j <= 17):
+                                quark_show_use.SetBinContent(j,unc_q/den_left_q)
+                                gluon_show_use.SetBinContent(j,unc_g/den_left_g)
+                                quark_show_negative.SetBinContent(j,-1*unc_q/den_left_q)
+                                gluon_show_negative.SetBinContent(j,-1*unc_g/den_left_g)
+                                q_left += unc_q
+                                g_left += unc_g
+                        elif(j >= 48):
+                                quark_show_use.SetBinContent(j,unc_q/den_right_q)
+                                gluon_show_use.SetBinContent(j,unc_g/den_right_g)
+                                quark_show_negative.SetBinContent(j,-1*unc_q/den_right_q)
+                                gluon_show_negative.SetBinContent(j,-1*unc_g/den_right_g)
+                                q_right += unc_q
+                                g_right += unc_g
+                        else:
+                                quark_show_use.SetBinContent(j,unc_q/den_q)
+                                gluon_show_use.SetBinContent(j,unc_g/den_g)
+                                quark_show_negative.SetBinContent(j,-1*unc_q/den_q)
+                                gluon_show_negative.SetBinContent(j,-1*unc_g/den_g)
+                ''''
+                for j in range(1,quark.GetNbinsX()+1):
+                        if(j <= 17):
+                                quark_show_use.SetBinContent(j,q_left/den_left_q)
+                                gluon_show_use.SetBinContent(j,g_left/den_left_g)
+                                quark_show_negative.SetBinContent(j,-1*q_left/den_left_q)
+                                gluon_show_negative.SetBinContent(j,-1*g_left/den_left_g)
+                        if(j >= 48):
+                                quark_show_use.SetBinContent(j,q_right/den_right_q)
+                                gluon_show_use.SetBinContent(j,g_right/den_right_g)
+                                quark_show_negative.SetBinContent(j,-1*q_right/den_right_q)
+                                gluon_show_negative.SetBinContent(j,-1*g_right/den_right_g)
+                '''
+                #quark_show_use.Divide(den_q)
+                #quark_show_negative.Divide(den_q)
+                #gluon_show_use.Divide(den_g)
+                #gluon_show_negative.Divide(den_g)
+                
                 for j in range(0,quark.GetNbinsX()):
                         sigma_tot_q[j][2] = quark_show_use.GetBinContent(j+1)
                         sigma_tot_g[j][2] = gluon_show_use.GetBinContent(j+1)
-
+                
 
 
                 #pdf uncertainty. stdev of binvals
@@ -556,7 +725,7 @@ for i in range(7,13):   #for only dijet event, start from jet pT>500 GeV
                         q_sigma_tot.SetBinContent(j+1,sigma_q_tot)
                         g_sigma_tot.SetBinContent(j+1,sigma_g_tot)
 
-                        print("statistical: "+str(100*a)+" , MC Closure: "+str(100*b)+" , Showering: "+str(100*c)+" , PDF: "+str(100*d))
+                        print(str(j+1)+" | Gluon | statistical: "+str(100*a)+" , MC Closure: "+str(100*b)+" , Showering: "+str(100*c)+" , PDF: "+str(100*d))
 
                 q_sigma_tot.Scale(100)
                 g_sigma_tot.Scale(100)

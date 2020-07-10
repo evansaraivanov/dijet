@@ -4,8 +4,8 @@ from ROOT import *
 
 doreweight = 0   #decide if we want to do the reweighting process
 
-var = "width" #change the var name according to the inputvar you want to read
-mc = "sherpa_SF"   #do not change
+var = "ntrk" #change the var name according to the inputvar you want to read
+mc = "sherpa_MC"   #do not change
 inputvar = var  #by setting it as bdt (or ntrk,width,c1..), it will read the corresponding histogram, but remember to change the TLine range according to X-axis of different variable, one can check it by browsing the histograms in root file.
 
 def myText(x,y,text, color = 1):
